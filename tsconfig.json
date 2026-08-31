@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    // No compilamos: Node ejecuta los .ts directamente quitando los tipos.
+    // TypeScript se usa solo para revisar (npm run typecheck) y para el editor.
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+
+    // Solo sintaxis que se pueda borrar sin transformar el codigo.
+    // Deja fuera enum, namespace y propiedades de parametro, que Node no puede quitar.
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"]
+}

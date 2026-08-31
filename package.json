@@ -1,0 +1,23 @@
+{
+  "name": "waybill-events-service",
+  "version": "1.0.0",
+  "description": "API REST que recibe eventos de estado de una guia y los publica a una cola SQS",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.658.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.7.0",
+    "typescript": "^5.8.2"
+  }
+}
