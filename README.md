@@ -13,6 +13,10 @@ explicar cada decisión, no para ser completo.
 - Node.js 22.18 o superior (probado en 24)
 - No hace falta cuenta de AWS ni base de datos para ejecutarlo o correr las pruebas
 
+La versión mínima no es un capricho: el proyecto ejecuta TypeScript sin paso de compilación y
+eso depende del *type stripping* que Node trae activo desde la 22.18. En una versión anterior el
+servicio no arranca y `npm test` reporta cero pruebas sin dar error.
+
 Está escrito en TypeScript **sin paso de compilación**: desde la 22.18 Node ejecuta archivos
 `.ts` directamente, quitando los tipos al cargarlos. No hay `dist/`, ni `ts-node`, ni un
 `build` antes de arrancar. TypeScript queda solo como dependencia de desarrollo, para el

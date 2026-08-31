@@ -1,0 +1,812 @@
+<meta charset="utf-8">
+<title>Servicio de eventos de guía</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root{
+    --paper:#FBFAF7;
+    --panel:#EFEFE9;
+    --panel-2:#E6E7DF;
+    --ink:#16202B;
+    --muted:#5B6672;
+    --rule:#CDCDC3;
+    --rule-soft:#DFDFD6;
+    --accent:#1B4F72;
+    --accent-soft:#DDE7EE;
+    --signal:#A96D08;
+    --signal-soft:#F4E9D2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#12171C;
+      --panel:#1A2027;
+      --panel-2:#212932;
+      --ink:#E7E8E3;
+      --muted:#97A1AB;
+      --rule:#333B44;
+      --rule-soft:#262E36;
+      --accent:#8CBBDE;
+      --accent-soft:#1B2A36;
+      --signal:#E0A84B;
+      --signal-soft:#2C2418;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#12171C;
+    --panel:#1A2027;
+    --panel-2:#212932;
+    --ink:#E7E8E3;
+    --muted:#97A1AB;
+    --rule:#333B44;
+    --rule-soft:#262E36;
+    --accent:#8CBBDE;
+    --accent-soft:#1B2A36;
+    --signal:#E0A84B;
+    --signal-soft:#2C2418;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- barra de pantalla, no se imprime ---------- */
+  .screenbar{
+    max-width:1120px;margin:0 auto;padding:22px 16px 6px;
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;
+    border-bottom:1px solid var(--rule-soft);
+  }
+  .screenbar p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.5}
+  .screenbar b{color:var(--ink);font-weight:600}
+  .screenbar .kbd{
+    font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;
+    border:1px solid var(--rule);border-radius:4px;padding:1px 5px;background:var(--panel);
+  }
+
+  .deck{
+    display:flex;flex-direction:column;align-items:center;
+    gap:26px;padding:26px 16px 70px;
+  }
+
+  .slide{
+    width:1120px;height:630px;flex:none;
+    background:var(--paper);
+    border:1px solid var(--rule);
+    padding:46px 62px 34px;
+    display:flex;flex-direction:column;
+    position:relative;overflow:hidden;
+  }
+
+  /* ---------- cabecera y pie de cada lámina ---------- */
+  .head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding-bottom:9px;border-bottom:1.5px solid var(--ink);
+  }
+  .eyebrow{
+    font-family:'Barlow Condensed',sans-serif;font-weight:600;
+    font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  }
+  .eyebrow .n{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.06em}
+  h2{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:38px;line-height:1.04;margin:17px 0 0;text-wrap:balance;letter-spacing:-.005em;
+  }
+  .lede{font-size:15.5px;line-height:1.48;color:var(--muted);margin:9px 0 0;max-width:74ch}
+  .body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:13px;padding:4px 0 2px}
+  .foot{
+    display:flex;justify-content:space-between;align-items:center;
+    border-top:1px solid var(--rule-soft);padding-top:9px;
+    font-size:11.5px;color:var(--muted);
+    font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;
+  }
+
+  /* ---------- portada ---------- */
+  .cover{justify-content:space-between}
+  .cover h1{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:74px;line-height:.98;margin:0;letter-spacing:-.015em;text-wrap:balance;
+  }
+  .cover .sub{font-size:19px;line-height:1.45;color:var(--muted);margin:16px 0 0;max-width:62ch}
+  .cover .rule{height:5px;background:var(--accent);width:118px;margin:0 0 26px}
+  .metagrid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+    background:var(--rule);border:1px solid var(--rule);margin-top:8px;
+  }
+  .metagrid div{background:var(--paper);padding:13px 15px}
+  .metagrid .k{
+    font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;
+  }
+  .metagrid .v{font-size:14px;font-weight:500;line-height:1.35}
+  .metagrid .v.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;word-break:break-all}
+
+  /* ---------- bloques de contenido ---------- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+
+  .card{border:1px solid var(--rule);background:var(--panel);padding:16px 18px}
+  .card h3{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;
+    margin:0 0 7px;line-height:1.15;
+  }
+  .card p{margin:0;font-size:14px;line-height:1.48;color:var(--muted)}
+  .card .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;
+    color:var(--accent);display:block;margin-bottom:6px;
+  }
+
+  p.txt{margin:0;font-size:15.5px;line-height:1.52;max-width:82ch}
+  p.txt + p.txt{margin-top:11px}
+  strong{font-weight:600;color:var(--ink)}
+  code{
+    font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.87em;
+    background:var(--panel-2);padding:1px 5px;border-radius:3px;
+  }
+
+  /* ---------- tablas ---------- */
+  table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+  th{
+    font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:12px;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+    text-align:left;padding:0 14px 8px 0;border-bottom:1.5px solid var(--ink);
+  }
+  td{padding:9px 14px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top;line-height:1.4}
+  td:last-child,th:last-child{padding-right:0}
+  tbody tr:last-child td{border-bottom:0}
+  td.lead{font-weight:600;width:26%}
+  td.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--accent)}
+
+  /* ---------- secuencia numerada ---------- */
+  ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+  ol.steps li{
+    display:grid;grid-template-columns:30px 1fr 168px;gap:16px;align-items:baseline;
+    padding:5px 0;border-bottom:1px solid var(--rule-soft);
+  }
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps .num{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);padding-top:2px;
+  }
+  ol.steps .q{font-size:14.5px;line-height:1.38}
+  ol.steps .q em{color:var(--muted);font-style:normal;font-size:13px;display:block;margin-top:1px}
+  ol.steps .out{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.4;
+    text-align:right;color:var(--muted);
+  }
+  ol.steps .out b{color:var(--ink);font-weight:500}
+  ol.steps li.ok .num,ol.steps li.ok .out b{color:var(--accent)}
+
+  /* ---------- notas ---------- */
+  .note{
+    border-left:3px solid var(--accent);background:var(--accent-soft);
+    padding:9px 15px;font-size:14px;line-height:1.46;
+  }
+  .note.warn{border-left-color:var(--signal);background:var(--signal-soft)}
+  .note .lbl{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11.5px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:4px;
+  }
+  .note.warn .lbl{color:var(--signal)}
+  .note p{margin:0}
+
+  ul.plain{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+  ul.plain li{
+    font-size:14.5px;line-height:1.45;padding-left:19px;position:relative;
+  }
+  ul.plain li::before{
+    content:"";position:absolute;left:0;top:.55em;
+    width:7px;height:7px;background:var(--accent);
+  }
+  ul.plain li.gap::before{background:var(--signal)}
+  ul.plain li b{font-weight:600}
+
+  /* ---------- figuras ---------- */
+  figure{margin:0;display:flex;flex-direction:column;gap:9px;align-items:center}
+  figure svg{max-width:100%;height:auto;display:block}
+  figcaption{font-size:13px;color:var(--muted);line-height:1.45;text-align:center;max-width:88ch}
+  .dg-box{fill:var(--panel);stroke:currentColor;stroke-width:1.1}
+  .dg-box-a{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+  .dg-out{fill:none;stroke:var(--signal);stroke-width:1.4;stroke-dasharray:6 4}
+  .dg-t{font-family:'Barlow',sans-serif;font-size:12.5px;fill:currentColor}
+  .dg-t-s{font-family:'Barlow',sans-serif;font-size:11px;fill:var(--muted)}
+  .dg-t-m{font-family:'IBM Plex Mono',monospace;font-size:10.5px;fill:var(--muted)}
+  .dg-h{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11.5px;
+        letter-spacing:.13em;fill:var(--muted)}
+  .dg-line{stroke:currentColor;stroke-width:1.2;fill:none}
+  .dg-line-s{stroke:var(--signal);stroke-width:1.3;fill:none;stroke-dasharray:6 4}
+
+  /* ---------- impresión: una lámina por página, siempre en claro ---------- */
+  @page{size:297mm 167mm;margin:0}
+  @media print{
+    :root,:root[data-theme="dark"],:root:not([data-theme="light"]){
+      --paper:#FFFFFF;
+      --panel:#F1F1EB;
+      --panel-2:#E7E8E0;
+      --ink:#16202B;
+      --muted:#55606C;
+      --rule:#C6C6BC;
+      --rule-soft:#DEDED5;
+      --accent:#1B4F72;
+      --accent-soft:#DDE7EE;
+      --signal:#A96D08;
+      --signal-soft:#F4E9D2;
+    }
+    /* fuerza el fondo aunque el usuario no marque "graficos de fondo" */
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{background:#fff}
+    .screenbar{display:none}
+    .deck{padding:0;gap:0;display:block}
+    .slide{
+      width:297mm;height:167mm;border:0;margin:0;zoom:1;
+      break-after:page;page-break-after:always;
+    }
+    .slide:last-child{break-after:auto;page-break-after:auto}
+  }
+</style>
+
+<div class="screenbar">
+  <p><b>Vista previa.</b> Nueve láminas, 16:9. El PDF ya está exportado junto a este archivo, en <span class="kbd">docs/</span>.</p>
+  <p>Para regenerarlo desde el navegador: <span class="kbd">Ctrl/Cmd + P</span> → <b>Guardar como PDF</b> → Horizontal → Márgenes <b>Ninguno</b>.</p>
+</div>
+
+<div class="deck">
+
+  <!-- ============================ 01 · PORTADA ============================ -->
+  <section class="slide cover">
+    <div class="head">
+      <span class="eyebrow">Prueba técnica · Desarrollador Advance</span>
+      <span class="eyebrow">Grupo TCC · SEL20260703</span>
+    </div>
+
+    <div>
+      <div class="rule" style="margin-top:38px"></div>
+      <h1>Servicio de eventos<br>de guía</h1>
+      <p class="sub">Ingesta de eventos de estado de una guía y publicación a una cola de mensajes.
+        El diseño gira alrededor de tres hechos del dominio: la red falla, los clientes reintentan
+        y el estado de una guía tiene reglas.</p>
+      <p class="sub" style="font-size:15px;margin-top:14px">Cubre el <strong>Eje 1 &middot; Arquitectura de la solución</strong> del enunciado. El ejercicio previo está en el repositorio.</p>
+    </div>
+
+    <div class="metagrid">
+      <div>
+        <span class="k">Candidato</span>
+        <span class="v">Mario Madera</span>
+      </div>
+      <div>
+        <span class="k">Repositorio</span>
+        <span class="v mono">github.com/mariod90/<wbr>servicio-eventos-guia-tcc</span>
+      </div>
+      <div>
+        <span class="k">Stack</span>
+        <span class="v">Node.js 22 · TypeScript · Express · SQS</span>
+      </div>
+      <div>
+        <span class="k">Alcance</span>
+        <span class="v">Ruta de ingreso, acotada a 2 horas</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 02 · EL RETO ============================ -->
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">02</span> &nbsp;· &nbsp;El reto</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>Alto volumen, sin perder eventos</h2>
+    <p class="lede">El enunciado lo plantea así: en temporadas pico el volumen de eventos se dispara, y hay
+      que capturarlos, actualizar el estado casi en tiempo real y notificar al cliente sin perder ninguno
+      ni degradar la operación. Cada exigencia deja una marca concreta en el diseño.</p>
+
+    <div class="body">
+      <div class="cols">
+        <div class="card">
+          <span class="tag">alta concurrencia</span>
+          <h3>Aceptar rápido, procesar aparte</h3>
+          <p>Los eventos llegan de varias plataformas a la vez y el pico multiplica el volumen. El servicio
+            valida y encola; quien notifica al cliente trabaja a su ritmo.</p>
+        </div>
+        <div class="card">
+          <span class="tag">sin perder eventos</span>
+          <h3>Idempotencia obligatoria</h3>
+          <p>Un <em>timeout</em> no significa que el evento no se procesó. El cliente reintenta, y sin clave
+            de idempotencia cada reintento sería una notificación de más.</p>
+        </div>
+        <div class="card">
+          <span class="tag">casi en tiempo real</span>
+          <h3>El orden de llegada no es el de los hechos</h3>
+          <p>El mensajero pierde cobertura y sincroniza una hora después. El estado se decide con la hora en
+            que ocurrió el evento, no con la de llegada.</p>
+        </div>
+        <div class="card">
+          <span class="tag">equipo pequeño</span>
+          <h3>Que se pueda cambiar sin miedo</h3>
+          <p>Las reglas de negocio viven separadas del transporte HTTP y de la cola, y se prueban sin
+            levantar infraestructura: catorce pruebas en menos de un segundo.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>02 / 10</span></div>
+  </section>
+
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">03</span> &nbsp;· &nbsp;Componentes e integraciones</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>De la fuente a la notificación</h2>
+
+    <div class="body">
+      <figure>
+        <svg viewBox="0 0 1060 372" width="984" role="img"
+             aria-label="Las fuentes de eventos entran por REST al servicio, que en tres capas deduplica, valida y comprueba la transición antes de publicar a una cola SQS FIFO; el consumidor que lee la cola y notifica al cliente queda fuera del alcance entregado.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+            <marker id="ars" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"/>
+            </marker>
+          </defs>
+
+          <!-- encabezados de columna -->
+          <text class="dg-h" x="14" y="20">FUENTES</text>
+          <text class="dg-h" x="252" y="20">EL SERVICIO</text>
+          <text class="dg-h" x="700" y="20">TRANSPORTE</text>
+          <text class="dg-h" x="878" y="20">FUERA DE ALCANCE</text>
+
+          <!-- fuentes -->
+          <rect class="dg-box" x="14" y="60"  width="176" height="46" rx="2"/>
+          <text class="dg-t" x="28" y="88">App del mensajero</text>
+          <rect class="dg-box" x="14" y="122" width="176" height="46" rx="2"/>
+          <text class="dg-t" x="28" y="150">TMS</text>
+          <rect class="dg-box" x="14" y="184" width="176" height="46" rx="2"/>
+          <text class="dg-t" x="28" y="206">Gestión Internacional</text>
+          <text class="dg-t-m" x="28" y="221">EDI</text>
+
+          <!-- confluencia hacia el servicio -->
+          <path class="dg-line" d="M190 83 H 216 V 152"/>
+          <path class="dg-line" d="M190 145 H 216"/>
+          <path class="dg-line" d="M190 207 H 216 V 152"/>
+          <path class="dg-line" d="M216 152 H 250" marker-end="url(#ar)"/>
+          <text class="dg-t-m" x="219" y="146">REST</text>
+
+          <!-- caja del servicio -->
+          <rect class="dg-box-a" x="252" y="34" width="392" height="316" rx="3"/>
+          <text class="dg-t-m" x="266" y="52" style="fill:var(--accent)">waybill-events-service</text>
+
+          <rect class="dg-box" x="270" y="66" width="356" height="54" rx="2"/>
+          <text class="dg-t" x="284" y="88">http/</text>
+          <text class="dg-t-s" x="284" y="105">lee Idempotency-Key · traduce a códigos HTTP</text>
+
+          <rect class="dg-box" x="270" y="140" width="356" height="66" rx="2"/>
+          <text class="dg-t" x="284" y="162">application/</text>
+          <text class="dg-t-s" x="284" y="179">deduplica · descarta atrasados · publica</text>
+          <text class="dg-t-s" x="284" y="195">no sabe qué es HTTP ni qué es SQS</text>
+
+          <rect class="dg-box" x="270" y="226" width="356" height="54" rx="2"/>
+          <text class="dg-t" x="284" y="248">domain/</text>
+          <text class="dg-t-s" x="284" y="265">estados · transiciones · regla del evento atrasado</text>
+
+          <rect class="dg-box" x="270" y="300" width="356" height="36" rx="2" stroke-dasharray="5 3"/>
+          <text class="dg-t-s" x="284" y="323">store · claves usadas, estado por guía, histórico — hoy en memoria</text>
+
+          <path class="dg-line" d="M448 120 V 138" marker-end="url(#ar)"/>
+          <path class="dg-line" d="M448 206 V 224" marker-end="url(#ar)"/>
+          <path class="dg-line" d="M448 280 V 298" marker-end="url(#ar)"/>
+
+          <!-- cola -->
+          <path class="dg-line" d="M644 152 H 700" marker-end="url(#ar)"/>
+          <text class="dg-t-m" x="650" y="143">publica</text>
+
+          <rect class="dg-box-a" x="702" y="112" width="152" height="82" rx="2"/>
+          <text class="dg-t" x="716" y="138">Cola SQS FIFO</text>
+          <text class="dg-t-s" x="716" y="157">MessageGroupId</text>
+          <text class="dg-t-m" x="716" y="174">= número de guía</text>
+
+          <!-- consumidor, fuera de alcance -->
+          <path class="dg-line-s" d="M854 152 H 900" marker-end="url(#ars)"/>
+          <rect class="dg-out" x="902" y="96" width="144" height="114" rx="2"/>
+          <text class="dg-t" x="916" y="124">Consumidor</text>
+          <text class="dg-t-s" x="916" y="143">reintentos · DLQ</text>
+          <text class="dg-t-s" x="916" y="160">notificación al</text>
+          <text class="dg-t-s" x="916" y="175">cliente final</text>
+          <text class="dg-t-m" x="916" y="196" style="fill:var(--signal)">no entregado</text>
+
+          <!-- nota de dirección de dependencias -->
+          <text class="dg-t-m" x="270" y="366">las dependencias van en una sola dirección:  http/ → application/ → domain/</text>
+        </svg>
+        <figcaption>El servicio cubre la ruta de ingreso completa —de la petición REST al mensaje en la cola—.
+          Lo dibujado en ámbar existe en el diseño pero no en el entregable.</figcaption>
+      </figure>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>03 / 10</span></div>
+  </section>
+
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">04</span> &nbsp;· &nbsp;Flujo de datos</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>Qué le pasa a un evento, en orden</h2>
+
+    <div class="body">
+      <ol class="steps">
+        <li>
+          <span class="num">01</span>
+          <span class="q">¿Ya vi antes esta <code>Idempotency-Key</code>?
+            <em>La manda el cliente y es la misma en todos sus reintentos.</em></span>
+          <span class="out">sí → <b>200</b> DUPLICATE<br>no publica de nuevo</span>
+        </li>
+        <li>
+          <span class="num">02</span>
+          <span class="q">¿El cuerpo es válido?
+            <em>Estado conocido, fecha ISO con zona horaria, contador presente.</em></span>
+          <span class="out">no → <b>400</b> INVALID_BODY</span>
+        </li>
+        <li>
+          <span class="num">03</span>
+          <span class="q">¿Ocurrió después del último estado que tengo?
+            <em>Comparo <code>occurredAt</code>, y desempato con <code>sequence</code>.</em></span>
+          <span class="out">no → <b>202</b> DISCARDED_AS_STALE<br>se guarda, no cambia el estado</span>
+        </li>
+        <li>
+          <span class="num">04</span>
+          <span class="q">¿La transición está permitida?
+            <em>Máquina de estados explícita, seis estados.</em></span>
+          <span class="out">no → <b>422</b> INVALID_TRANSITION<br>devuelve origen y destino</span>
+        </li>
+        <li>
+          <span class="num">05</span>
+          <span class="q">Reservo la clave y publico a la cola.
+            <em>Si la publicación falla, libero la clave para que el reintento sí entre.</em></span>
+          <span class="out">falla → <b>502</b> PUBLISH_FAILED</span>
+        </li>
+        <li class="ok">
+          <span class="num">06</span>
+          <span class="q">Registro el evento y actualizo el estado de la guía.</span>
+          <span class="out"><b>202</b> ACCEPTED</span>
+        </li>
+      </ol>
+
+      <div class="note">
+        <span class="lbl">El orden no es casual</span>
+        <p>Deduplico <em>antes</em> de validar, y descarto atrasados <em>antes</em> de comprobar la
+          transición: al revés, un evento viejo que llega tarde saldría rechazado por "transición
+          inválida" cuando esa transición nunca ocurrió.</p>
+      </div>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>04 / 10</span></div>
+  </section>
+
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">05</span> &nbsp;· &nbsp;Que no se pierdan eventos</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>Idempotencia, orden y reintentos</h2>
+    <p class="lede">Catorce pruebas con el runner que trae Node, sin librerías externas. Estas cuatro son
+      las que sostienen el diseño.</p>
+
+    <div class="body">
+      <table>
+        <thead>
+          <tr><th style="width:23%">Riesgo</th><th style="width:44%">Cómo lo ataco</th><th>Prueba que lo cubre</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lead">Evento duplicado</td>
+            <td>Clave de idempotencia obligatoria, enviada por el cliente. La reservo <em>antes</em>
+              de publicar, así dos peticiones simultáneas con la misma clave no publican las dos.</td>
+            <td>La misma clave dos veces devuelve <code>DUPLICATE</code> y publica una sola vez</td>
+          </tr>
+          <tr>
+            <td class="lead">Evento atrasado<br>o desordenado</td>
+            <td>Comparo por la hora en que ocurrió el hecho, no por la de llegada. Y si la cola es
+              FIFO, el <code>MessageGroupId</code> es el número de guía: orden garantizado por guía,
+              paralelismo entre guías distintas.</td>
+            <td>Un evento atrasado se guarda en el histórico pero no cambia el estado actual</td>
+          </tr>
+          <tr>
+            <td class="lead">Estado imposible</td>
+            <td>Máquina de estados explícita en el dominio. <code>ENTREGADA</code> y
+              <code>DEVUELTA</code> son terminales: no salen a ningún otro estado.</td>
+            <td>Una transición inválida devuelve <code>422</code> con el estado de origen y el de destino</td>
+          </tr>
+          <tr>
+            <td class="lead">La cola está caída</td>
+            <td>Libero la clave reservada y respondo <code>502</code>. El cliente reintenta con la
+              misma clave y esta vez sí entra, en lugar de recibir un "duplicado" que no lo era.</td>
+            <td>Si falla la publicación, la clave queda libre para el reintento</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>05 / 10</span></div>
+  </section>
+
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">06</span> &nbsp;· &nbsp;Ventajas y desventajas</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>Lo que decidí, y lo que cuesta</h2>
+
+    <div class="body">
+      <table>
+        <thead>
+          <tr><th style="width:27%">Decisión</th><th style="width:40%">Por qué</th><th>Lo que cuesta</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lead">La clave de idempotencia la manda el cliente</td>
+            <td>Si la calculara yo con un hash del cuerpo, un reintento con distinta hora de recepción
+              daría otra clave y no serviría de nada.</td>
+            <td>Dependo de que el cliente la mande bien. Por eso es obligatoria y respondo <code>400</code> si falta.</td>
+          </tr>
+          <tr>
+            <td class="lead">Un duplicado responde <code>200</code>, no <code>409</code></td>
+            <td>El cliente reintentó, no se equivocó. Un error lo empujaría a reintentar otra vez.</td>
+            <td>Hay que leer el campo <code>result</code> del cuerpo para distinguirlo de un alta real.</td>
+          </tr>
+          <tr>
+            <td class="lead">Tres capas, no una ni cinco</td>
+            <td>El escenario dice que los eventos llegan del TMS y de Gestión Internacional. El día que
+              una fuente entre por cola en vez de REST, el caso de uso se reutiliza tal cual.</td>
+            <td>Un salto más al leer el código. Por eso la consulta de estado <em>no</em> tiene capa: hoy no tiene reglas.</td>
+          </tr>
+          <tr>
+            <td class="lead">Cola FIFO</td>
+            <td>Garantiza el orden dentro de una misma guía sin que el consumidor tenga que reordenar.</td>
+            <td>Menos rendimiento que la estándar. Si molestara, usaría estándar y ordenaría por <code>occurredAt</code>.</td>
+          </tr>
+          <tr>
+            <td class="lead">TypeScript sin paso de compilación</td>
+            <td>El resultado de validar es un tipo unión, así que el compilador me obliga a tratar el
+              caso de error antes de poder tocar el evento. Y Node ya ejecuta <code>.ts</code> directamente.</td>
+            <td>Sube el mínimo de Node a la 22.18.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>06 / 10</span></div>
+  </section>
+
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">07</span> &nbsp;· &nbsp;Límite conocido</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>El problema que sé que tengo</h2>
+    <p class="lede">Hoy escribo en dos sitios que no comparten transacción: publico en la cola y después
+      registro el estado. Si el proceso se cae entre esas dos líneas, el mensaje ya salió pero el estado
+      no quedó —y como la clave está reservada, el reintento del cliente responde <code>DUPLICATE</code>—.</p>
+
+    <div class="body">
+      <figure>
+        <svg viewBox="0 0 1010 196" width="920" role="img"
+             aria-label="Comparación entre la escritura doble actual, donde el servicio publica a la cola y luego escribe el estado sin transacción común, y el patrón outbox, donde el servicio escribe evento y mensaje en una sola transacción de base de datos y un publicador aparte lee esa tabla y publica.">
+          <defs>
+            <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- fila 1: hoy -->
+          <text class="dg-h" x="0" y="16" style="fill:var(--signal)">HOY · ESCRITURA DOBLE</text>
+          <rect class="dg-box" x="0" y="24" width="132" height="84" rx="2"/>
+          <text class="dg-t" x="14" y="70">Servicio</text>
+
+          <path class="dg-line" d="M132 43 H 266" marker-end="url(#ar2)"/>
+          <text class="dg-t-m" x="140" y="37">1 · publica mensaje</text>
+          <rect class="dg-box" x="268" y="24" width="118" height="38" rx="2"/>
+          <text class="dg-t" x="282" y="48">Cola</text>
+
+          <path class="dg-line" d="M132 89 H 266" marker-end="url(#ar2)"/>
+          <text class="dg-t-m" x="140" y="83">2 · guarda estado</text>
+          <rect class="dg-box" x="268" y="70" width="118" height="38" rx="2"/>
+          <text class="dg-t" x="282" y="94">Almacén</text>
+
+          <path class="dg-line-s" d="M404 30 V 104"/>
+          <text class="dg-t-m" x="416" y="52" style="fill:var(--signal)">si el proceso muere entre 1 y 2,</text>
+          <text class="dg-t-m" x="416" y="68" style="fill:var(--signal)">el mensaje salió y el estado no quedó:</text>
+          <text class="dg-t-m" x="416" y="84" style="fill:var(--signal)">el evento se pierde</text>
+
+          <!-- separador -->
+          <line x1="0" y1="122" x2="1010" y2="122" class="dg-line" stroke-dasharray="3 4" opacity=".45"/>
+
+          <!-- fila 2: outbox -->
+          <text class="dg-h" x="0" y="146" style="fill:var(--accent)">CON OUTBOX</text>
+          <rect class="dg-box" x="0" y="156" width="132" height="34" rx="2"/>
+          <text class="dg-t" x="14" y="178">Servicio</text>
+
+          <path class="dg-line" d="M132 173 H 250" marker-end="url(#ar2)"/>
+          <text class="dg-t-m" x="140" y="167">una transacción</text>
+          <rect class="dg-box-a" x="252" y="150" width="196" height="46" rx="2"/>
+          <text class="dg-t-m" x="264" y="168" style="fill:var(--accent)">INSERT evento</text>
+          <text class="dg-t-m" x="264" y="184" style="fill:var(--accent)">INSERT outbox</text>
+          <text class="dg-t-s" x="374" y="176">misma BD</text>
+
+          <path class="dg-line" d="M448 173 H 540" marker-end="url(#ar2)"/>
+          <text class="dg-t-m" x="454" y="167">lee la tabla</text>
+          <rect class="dg-box" x="542" y="156" width="146" height="34" rx="2"/>
+          <text class="dg-t" x="556" y="178">Publicador aparte</text>
+
+          <path class="dg-line" d="M688 173 H 780" marker-end="url(#ar2)"/>
+          <text class="dg-t-m" x="694" y="167">publica</text>
+          <rect class="dg-box" x="782" y="156" width="112" height="34" rx="2"/>
+          <text class="dg-t" x="796" y="178">Cola</text>
+        </svg>
+        <figcaption>Las dos escrituras de la transacción van las dos a la base de datos. Nunca hay una
+          transacción que incluya a la cola —eso no existe—.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <span class="lbl">Lo que el outbox resuelve, y lo que no</span>
+        <p>Convierte "se puede perder" en "se puede duplicar": si el publicador se cae después de enviar
+          y antes de marcar la fila, reenvía. Por eso el consumidor tiene que ser idempotente.
+          <strong>No lo implementé:</strong> sin base de datos no tenía sentido, y no lo he usado en
+          producción. Prefiero señalarlo yo antes que entregarlo a medias.</p>
+      </div>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>07 / 10</span></div>
+  </section>
+
+  <!-- ============ 08 · ESCALABILIDAD, OBSERVABILIDAD, SEGURIDAD ============ -->
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">08</span> &nbsp;· &nbsp;Ejes transversales</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>Escalabilidad, observabilidad y seguridad</h2>
+    <p class="lede">Separo lo que ya está resuelto en el código de lo que hoy falta.</p>
+
+    <div class="body">
+      <div class="cols3">
+        <div class="card">
+          <span class="tag">escalabilidad</span>
+          <h3>La cola absorbe el pico</h3>
+          <p>Si el consumidor se retrasa, la ingesta no se degrada: se acumula trabajo en la cola, no
+            peticiones en espera.<br><br>
+            Cuando el estado salga de memoria a base de datos, el servicio queda sin estado y admite varias
+            réplicas detrás del balanceador, escalando por CPU o por profundidad de la cola.<br><br>
+            El orden dentro de una guía lo garantiza el <code>MessageGroupId</code>, no el número de
+            instancias.</p>
+        </div>
+        <div class="card">
+          <span class="tag">observabilidad</span>
+          <h3>Rastrear una guía completa</h3>
+          <p>Hay log estructurado en JSON con el número de guía y el id del evento como campos, no dentro
+            del texto: se sigue el recorrido entero de una guía filtrando por un campo.<br><br>
+            <strong>Falta:</strong> contadores de eventos aceptados, duplicados, descartados y fallidos; y
+            alerta sobre la profundidad de la cola y la antigüedad del mensaje más viejo, que es la señal
+            temprana de que el consumidor no da abasto.</p>
+        </div>
+        <div class="card">
+          <span class="tag">seguridad</span>
+          <h3>Menos superficie que proteger</h3>
+          <p>Hoy no hay autenticación. Entre servicios iría mTLS o un token OAuth2 con alcance por
+            operación.<br><br>
+            Lo que sí es una decisión tomada: el mensaje lleva el número de guía, no los datos del
+            destinatario. Quien necesite nombre o dirección los consulta al servicio que corresponda.<br><br>
+            Menos datos personales viajando, y menos exposición frente a la Ley 1581.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>08 / 10</span></div>
+  </section>
+
+  <!-- ============================ 09 · A PRODUCCIÓN ============================ -->
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">09</span> &nbsp;· &nbsp;De la idea a producción</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>Integración continua y despliegue</h2>
+
+    <div class="body">
+      <table>
+        <thead>
+          <tr><th style="width:23%">Etapa</th><th>Qué pasa, y por qué así</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lead">Integración continua</td>
+            <td>En cada <em>pull request</em>: instalación limpia, <code>npm run typecheck</code> y
+              <code>npm test</code>. Las dos puertas ya existen en el repositorio, así que no hay que
+              inventar el pipeline sino conectarlo. Si alguna falla, el cambio no se integra.</td>
+          </tr>
+          <tr>
+            <td class="lead">Empaquetado</td>
+            <td>Imagen de contenedor con la versión de Node fijada. Al no haber paso de compilación, la
+              imagen es el código y sus dependencias: lo que se prueba es lo que se despliega.</td>
+          </tr>
+          <tr>
+            <td class="lead">Configuración</td>
+            <td>Por variables de entorno (<code>SQS_QUEUE_URL</code>, <code>AWS_REGION</code>), nunca en el
+              repositorio. El mismo artefacto sirve para todos los entornos; lo único que cambia es a qué
+              cola apunta.</td>
+          </tr>
+          <tr>
+            <td class="lead">Despliegue</td>
+            <td>Sustitución gradual de instancias detrás del balanceador. <code>GET /health</code> ya existe
+              y es la sonda: si una instancia nueva no responde, no recibe tráfico y se vuelve a la
+              versión anterior.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note warn">
+        <span class="lbl">El orden importa más que la herramienta</span>
+        <p>Antes del pipeline haría la base de datos y el outbox de la lámina 07. Sin eso, la entrega
+          continua solo consigue desplegar más rápido un servicio que todavía puede perder un evento.</p>
+      </div>
+    </div>
+
+    <div class="foot"><span>Prueba Técnica Desarrollador Advance · 2026-07</span><span>09 / 10</span></div>
+  </section>
+
+  <section class="slide">
+    <div class="head">
+      <span class="eyebrow"><span class="n">10</span> &nbsp;· &nbsp;Alcance y stack</span>
+      <span class="eyebrow">Servicio de eventos de guía</span>
+    </div>
+    <h2>Dónde puse el límite, y por qué</h2>
+
+    <div class="body">
+      <p class="txt">El ejercicio es opcional y con tope de dos horas, así que lo acoté a la ruta de
+        ingreso. Preferí <strong>una ruta completa y probada</strong> antes que un sistema entero a
+        medias: el consumidor, la base de datos y el despliegue no son olvidos, son recortes con fecha.</p>
+
+      <p class="txt">Elegí <strong>Node con TypeScript</strong> porque es donde tengo más profundidad hoy
+        y quería poder defender cada línea de este código. La prueba menciona Java con Spring Boot y
+        Angular como tecnologías principales, y también servicios en Node.</p>
+
+      <p class="txt">Sobre la cola: usé <strong>SQS</strong> porque es lo que he tocado en AWS.
+        <strong>No he trabajado con Kafka ni con RabbitMQ en producción.</strong> La diferencia que sí
+        tengo clara para un caso como este es que Kafka conserva el log y permite reprocesar desde el
+        principio, mientras que SQS borra el mensaje cuando el consumidor lo confirma —para reprocesar
+        una guía completa, esa capacidad es un argumento fuerte a favor de Kafka—.</p>
+
+      <div class="note">
+        <span class="lbl">Para revisarlo</span>
+        <p><code>npm install</code> y <code>npm start</code> lo levantan sin AWS ni base de datos:
+          si no hay cola configurada, usa un publicador en memoria que escribe el evento en consola.
+          <code>npm test</code> corre las catorce pruebas y <code>npm run typecheck</code> revisa los tipos.
+          El README explica cada decisión con más detalle.</p>
+      </div>
+    </div>
+
+    <div class="foot"><span>github.com/mariod90/servicio-eventos-guia-tcc</span><span>10 / 10</span></div>
+  </section>
+
+</div>
+
+<script>
+  // En pantallas estrechas, encoge la lámina completa en vez de recortarla.
+  (function () {
+    var deck = document.querySelector('.deck');
+    if (!deck) return;
+    function fit() {
+      var available = deck.clientWidth - 32;
+      var scale = Math.min(1, available / 1120);
+      document.querySelectorAll('.slide').forEach(function (s) {
+        s.style.zoom = scale < 1 ? scale : '';
+      });
+    }
+    fit();
+    window.addEventListener('resize', fit);
+  })();
+</script>
