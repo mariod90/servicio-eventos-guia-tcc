@@ -3,7 +3,7 @@ import express, { type Express, type Request, type Response } from 'express';
 import { createRegisterWaybillEvent } from './application/registerWaybillEvent.ts';
 import { createWaybillsRouter } from './http/waybillsRouter.ts';
 import { errorHandler } from './http/errorHandler.ts';
-import type { EventStore, Publisher } from './types.ts';
+import type { EventStore, Publisher } from './application/ports.ts';
 
 export interface AppDependencies {
   publisher: Publisher;

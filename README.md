@@ -155,7 +155,6 @@ Respuestas:
 src/
 ├── server.ts                       arranque y elección del publicador
 ├── app.ts                          arma las piezas y monta las rutas
-├── types.ts                        tipos compartidos y contratos (Publisher, EventStore)
 ├── logger.ts                       log estructurado en JSON
 │
 ├── http/                           traduce HTTP <-> caso de uso
@@ -163,10 +162,12 @@ src/
 │   └── errorHandler.ts
 │
 ├── application/                    los casos de uso
-│   └── registerWaybillEvent.ts       el flujo completo, sin saber qué es HTTP
+│   ├── registerWaybillEvent.ts       el flujo completo, sin saber qué es HTTP
+│   └── ports.ts                      lo que el caso de uso necesita: Publisher, EventStore
 │
 ├── domain/                         las reglas, sin dependencias de framework
-│   ├── status.ts                     transiciones válidas y regla del evento atrasado
+│   ├── waybillStatus.ts              estados y transiciones; no depende de nada
+│   ├── waybillEvent.ts               el evento, el estado actual, la regla del atrasado
 │   └── validate.ts                   validación del cuerpo
 │
 ├── store.ts                        memoria: claves usadas, estado por guía, histórico
@@ -213,7 +214,22 @@ La consulta de estado no tiene caso de uso propio, a propósito: hoy sería una 
 solo reenvía la llamada al almacén. Cuando tenga reglas —permisos por cliente, caché— se
 extrae. Prefiero una asimetría que pueda explicar a una capa vacía por simetría.
 
-En `types.ts` está el contrato del publicador:
+### Dónde viven los tipos
+
+Los tipos no están todos juntos en un archivo, sino donde pertenecen:
+
+- **`domain/waybillEvent.ts`** tiene el modelo: `WaybillEvent` y `CurrentStatus`.
+- **`application/ports.ts`** tiene los puertos: `Publisher` y `EventStore`.
+
+La separación no es cosmética. Los puertos no son dominio: son lo que el **caso de uso**
+necesita del mundo exterior para trabajar. El dominio no tiene por qué saber que los eventos
+"se publican" o "se guardan"; eso es lo que hace que `waybillStatus.ts` y `validate.ts` sean
+funciones puras. Y `domain/waybillStatus.ts` no importa nada: es la pieza más interna.
+
+Las dependencias van en una sola dirección: `http/` → `application/` → `domain/`, y quien
+implementa los puertos (SQS, memoria) depende de las interfaces, no al revés.
+
+En `application/ports.ts` está el contrato del publicador:
 
 ```ts
 export interface Publisher {

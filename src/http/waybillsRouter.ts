@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 
 import type { RegisterWaybillEvent, RegisterWaybillEventResult } from '../application/registerWaybillEvent.ts';
-import type { EventStore } from '../types.ts';
+import type { EventStore } from '../application/ports.ts';
 
 /**
  * Capa HTTP: traduce peticion -> comando y resultado -> codigo de respuesta.

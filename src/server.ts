@@ -2,7 +2,7 @@ import { createApp } from './app.ts';
 import { createEventStore } from './store.ts';
 import { createInMemoryPublisher } from './publisher/inMemory.ts';
 import { createSqsPublisher } from './publisher/sqs.ts';
-import type { Publisher } from './types.ts';
+import type { Publisher } from './application/ports.ts';
 
 const port = Number(process.env.PORT ?? 3000);
 

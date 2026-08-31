@@ -1,4 +1,5 @@
-import type { CurrentStatus, EventStore, WaybillEvent } from './types.ts';
+import type { CurrentStatus, WaybillEvent } from './domain/waybillEvent.ts';
+import type { EventStore } from './application/ports.ts';
 
 /**
  * Almacen en memoria.

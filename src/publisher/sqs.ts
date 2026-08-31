@@ -1,6 +1,6 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 
-import type { Publisher } from '../types.ts';
+import type { Publisher } from '../application/ports.ts';
 
 export interface SqsPublisherOptions {
   queueUrl: string | undefined;

@@ -1,4 +1,5 @@
-import type { Publisher, WaybillEvent } from '../types.ts';
+import type { WaybillEvent } from '../domain/waybillEvent.ts';
+import type { Publisher } from '../application/ports.ts';
 
 /** El publicador de memoria expone dos cosas extra que solo usan las pruebas. */
 export interface InMemoryPublisher extends Publisher {

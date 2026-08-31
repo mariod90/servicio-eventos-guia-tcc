@@ -1,4 +1,4 @@
-import type { WaybillEvent } from './types.ts';
+import type { WaybillEvent } from './domain/waybillEvent.ts';
 
 /**
  * Log en JSON con waybillNumber y eventId como campos, no dentro del texto,

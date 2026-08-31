@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-import { WAYBILL_STATUSES, isValidStatus } from './status.ts';
-import type { WaybillEvent } from '../types.ts';
+import { WAYBILL_STATUSES, isValidStatus } from './waybillStatus.ts';
+import type { WaybillEvent } from './waybillEvent.ts';
 
 /**
  * El resultado es un tipo union: o hay evento, o hay errores, nunca las dos cosas.

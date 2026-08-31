@@ -1,7 +1,8 @@
 import { validateEvent } from '../domain/validate.ts';
-import { isTransitionAllowed, isNewerThanCurrent, type WaybillStatus } from '../domain/status.ts';
+import { isTransitionAllowed, type WaybillStatus } from '../domain/waybillStatus.ts';
+import { isNewerThanCurrent } from '../domain/waybillEvent.ts';
 import { logEvent } from '../logger.ts';
-import type { EventStore, Publisher } from '../types.ts';
+import type { EventStore, Publisher } from './ports.ts';
 
 /**
  * Caso de uso: registrar un evento de estado de una guia.
